@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CS50 - Register</title>
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+        <style>
+            :root {
+                --ink: #0a0a0f;
+                --gold: #c9a84c;
+                --gl: #e8c97a;
+                --cream: #ede8de;
+                --muted: #5a5550;
+                --d2: #1a1a24;
+                --bd: rgba(201, 168, 76, .15);
+                --gr: #4caf82;
+                --rd: #c94c4c;
+            }
+
+            *,
+            *::before,
+            *::after {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                background: var(--ink);
+                color: var(--cream);
+                font-family: "Cormorant Garamond", serif;
+                min-height: 100vh;
+                display: flex;
+                cursor: none;
+                overflow: hidden;
+            }
+
+            body::before {
+                content: "";
+                position: fixed;
+                inset: 0;
+                z-index: 9998;
+                pointer-events: none;
+                opacity: .04;
+                background: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0/200px;
+            }
+
+            #cur {
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 9999;
+                pointer-events: none;
+            }
+
+            .dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--gold);
+                position: absolute;
+                transform: translate(-50%, -50%);
+            }
+
+            .ring {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                border: 1px solid rgba(201, 168, 76, .5);
+                position: absolute;
+                transform: translate(-50%, -50%);
+                transition: width .3s, height .3s, border-color .3s;
+            }
+
+            body.hov .ring {
+                width: 52px;
+                height: 52px;
+                border-color: var(--gold);
+            }
+
+            body.hov .dot {
+                transform: translate(-50%, -50%) scale(0);
+            }
+
+            .lp {
+                width: 44%;
+                position: relative;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                padding: 52px;
+                border-right: 1px solid var(--bd);
+            }
+
+            .lpb {
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(ellipse 70% 60% at 70% 30%, rgba(44, 80, 139, .18), transparent 65%), radial-gradient(ellipse 60% 70% at 20% 80%, rgba(201, 168, 76, .08), transparent 55%), linear-gradient(150deg, #0a0a0f, #0e1218 50%, #0a0a0f);
+            }
+
+            .lpl {
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 1px;
+                height: 100%;
+                background: linear-gradient(to bottom, transparent, rgba(201, 168, 76, .15) 30%, rgba(201, 168, 76, .07) 70%, transparent);
+            }
+
+            .lt,
+            .lb {
+                position: relative;
+                z-index: 2;
+            }
+
+            .logo {
+                font-family: "Playfair Display", serif;
+                font-size: 1.4rem;
+                letter-spacing: .38em;
+                color: var(--cream);
+                text-decoration: none;
+                display: block;
+                margin-bottom: 64px;
+            }
+
+            .logo span {
+                color: var(--gold);
+            }
+
+            .ptitle {
+                font-family: "Playfair Display", serif;
+                font-size: clamp(2.6rem, 4vw, 4rem);
+                font-weight: 900;
+                line-height: .95;
+                color: var(--cream);
+                margin-bottom: 24px;
+            }
+
+            .ptitle em {
+                font-style: italic;
+                color: var(--gold);
+                display: block;
+            }
+
+            .psub {
+                font-size: 1.05rem;
+                color: var(--muted);
+                max-width: 290px;
+                line-height: 1.75;
+                font-weight: 300;
+                margin-bottom: 0;
+            }
+
+            .steps {
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+                margin-top: 0;
+            }
+
+            .step {
+                display: flex;
+                gap: 16px;
+                padding: 20px 0;
+                border-bottom: 1px solid var(--bd);
+            }
+
+            .step:last-child {
+                border-bottom: none;
+            }
+
+            .sn {
+                font-family: "Playfair Display", serif;
+                font-size: 1.8rem;
+                font-weight: 900;
+                color: rgba(201, 168, 76, .2);
+                line-height: 1;
+                flex-shrink: 0;
+                width: 36px;
+            }
+
+            .st strong {
+                color: var(--cream);
+                font-weight: 400;
+                display: block;
+                font-size: 1rem;
+                margin-bottom: 3px;
+            }
+
+            .st {
+                font-size: .9rem;
+                color: var(--muted);
+                font-weight: 300;
+                line-height: 1.4;
+            }
+
+            .rp {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                padding: 40px 48px;
+                position: relative;
+                overflow-y: auto;
+            }
+
+            .tnav {
+                position: absolute;
+                top: 36px;
+                right: 48px;
+                display: flex;
+                gap: 28px;
+            }
+
+            .tnav a {
+                font-family: "Space Mono", monospace;
+                font-size: .6rem;
+                letter-spacing: .18em;
+                text-transform: uppercase;
+                color: var(--muted);
+                text-decoration: none;
+                transition: color .3s;
+            }
+
+            .tnav a:hover,
+            .tnav a.on {
+                color: var(--gold);
+            }
+
+            .fc {
+                width: 100%;
+                max-width: 400px;
+                padding: 20px 0;
+            }
+
+            .fey {
+                font-family: "Space Mono", monospace;
+                font-size: .6rem;
+                letter-spacing: .28em;
+                text-transform: uppercase;
+                color: var(--gold);
+                margin-bottom: 12px;
+            }
+
+            .fti {
+                font-family: "Playfair Display", serif;
+                font-size: 2.4rem;
+                font-weight: 900;
+                color: var(--cream);
+                margin-bottom: 8px;
+                line-height: 1;
+            }
+
+            .fsu {
+                font-size: 1rem;
+                color: var(--muted);
+                margin-bottom: 36px;
+                font-weight: 300;
+                line-height: 1.5;
+            }
+
+            .fsu a {
+                color: var(--gold);
+                text-decoration: none;
+                border-bottom: 1px solid rgba(201, 168, 76, .3);
+            }
+
+            .fsu a:hover {
+                border-color: var(--gold);
+            }
+
+            .fg {
+                display: flex;
+                flex-direction: column;
+                gap: 18px;
+                margin-bottom: 24px;
+            }
+
+            .fd {
+                display: flex;
+                flex-direction: column;
+                gap: 7px;
+            }
+
+            .fd label {
+                font-family: "Space Mono", monospace;
+                font-size: .56rem;
+                letter-spacing: .22em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+
+            .fw {
+                position: relative;
+            }
+
+            .fd input {
+                width: 100%;
+                padding: 14px 18px;
+                background: var(--d2);
+                border: 1px solid var(--bd);
+                color: var(--cream);
+                font-family: "Space Mono", monospace;
+                font-size: .78rem;
+                outline: none;
+                transition: border-color .3s, background .3s;
+                caret-color: var(--gold);
+                cursor: none;
+            }
+
+            .fd input::placeholder {
+                color: rgba(90, 85, 80, .45);
+            }
+
+            .fd input:focus {
+                border-color: rgba(201, 168, 76, .5);
+                background: rgba(201, 168, 76, .03);
+            }
+
+            .fd input.e {
+                border-color: var(--rd);
+            }
+
+            .fd input.s {
+                border-color: var(--gr);
+            }
+
+            .eye {
+                position: absolute;
+                right: 14px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: none;
+                border: none;
+                cursor: none;
+                color: var(--muted);
+                font-size: 1rem;
+                transition: color .3s;
+                padding: 4px;
+            }
+
+            .eye:hover {
+                color: var(--gold);
+            }
+
+            .fer {
+                font-family: "Space Mono", monospace;
+                font-size: .52rem;
+                letter-spacing: .1em;
+                text-transform: uppercase;
+                color: var(--rd);
+                min-height: 14px;
+                margin-top: 4px;
+            }
+
+            .pw-strength {
+                height: 3px;
+                background: var(--d2);
+                border-radius: 2px;
+                overflow: hidden;
+                margin-top: 6px;
+                transition: opacity .3s;
+            }
+
+            .pw-bar {
+                height: 100%;
+                width: 0%;
+                border-radius: 2px;
+                transition: width .4s, background .4s;
+            }
+
+            .pw-label {
+                font-family: "Space Mono", monospace;
+                font-size: .5rem;
+                letter-spacing: .1em;
+                text-transform: uppercase;
+                color: var(--muted);
+                margin-top: 4px;
+            }
+
+            .row2 {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+
+            .terms-row {
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+                margin-bottom: 24px;
+            }
+
+            .cb {
+                width: 16px;
+                height: 16px;
+                border: 1px solid var(--bd);
+                background: var(--d2);
+                position: relative;
+                flex-shrink: 0;
+                margin-top: 2px;
+                transition: border-color .3s;
+                cursor: none;
+            }
+
+            .cb::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: .7rem;
+                color: var(--gold);
+                opacity: 0;
+                transition: opacity .2s;
+            }
+
+            .cw.on .cb {
+                border-color: var(--gold);
+                background: rgba(201, 168, 76, .08);
+            }
+
+            .cw.on .cb::after {
+                content: "check";
+                opacity: 1;
+            }
+
+            .tl2 {
+                font-size: .88rem;
+                color: var(--muted);
+                line-height: 1.5;
+                font-weight: 300;
+            }
+
+            .tl2 a {
+                color: var(--gold);
+                text-decoration: none;
+                border-bottom: 1px solid rgba(201, 168, 76, .3);
+            }
+
+            .sb {
+                width: 100%;
+                padding: 17px;
+                background: var(--gold);
+                color: var(--ink);
+                border: none;
+                font-family: "Space Mono", monospace;
+                font-size: .68rem;
+                letter-spacing: .22em;
+                text-transform: uppercase;
+                font-weight: 700;
+                cursor: none;
+                position: relative;
+                overflow: hidden;
+                transition: background .3s, transform .2s;
+                margin-bottom: 20px;
+            }
+
+            .sb:hover {
+                background: var(--gl);
+                transform: translateY(-2px);
+            }
+
+            .bt {
+                position: relative;
+                z-index: 1;
+                transition: opacity .3s;
+            }
+
+            .bsp {
+                position: absolute;
+                inset: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 0;
+                transition: opacity .3s;
+            }
+
+            .sb.ld .bt {
+                opacity: 0;
+            }
+
+            .sb.ld .bsp {
+                opacity: 1;
+            }
+
+            .spi {
+                width: 16px;
+                height: 16px;
+                border: 2px solid rgba(10, 10, 15, .3);
+                border-top-color: var(--ink);
+                border-radius: 50%;
+                animation: spin .6s linear infinite;
+            }
+
+            .dv {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                margin-bottom: 20px;
+            }
+
+            .dl {
+                flex: 1;
+                height: 1px;
+                background: var(--bd);
+            }
+
+            .dt {
+                font-family: "Space Mono", monospace;
+                font-size: .52rem;
+                letter-spacing: .18em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+
+            .oar {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 0;
+            }
+
+            .ob {
+                flex: 1;
+                padding: 12px 8px;
+                background: var(--d2);
+                border: 1px solid var(--bd);
+                color: var(--muted);
+                font-family: "Space Mono", monospace;
+                font-size: .56rem;
+                letter-spacing: .1em;
+                text-transform: uppercase;
+                cursor: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                transition: border-color .3s, color .3s, background .3s;
+            }
+
+            .ob:hover {
+                border-color: rgba(201, 168, 76, .35);
+                color: var(--cream);
+                background: rgba(201, 168, 76, .04);
+            }
+
+            .cr {
+                position: fixed;
+                font-family: "Space Mono", monospace;
+                font-size: .5rem;
+                letter-spacing: .16em;
+                color: rgba(201, 168, 76, .18);
+                pointer-events: none;
+            }
+
+            .tl {
+                top: 18px;
+                left: 18px;
+            }
+
+            .brr {
+                bottom: 18px;
+                right: 18px;
+            }
+
+            .tst {
+                position: fixed;
+                bottom: 36px;
+                left: 50%;
+                transform: translateX(-50%) translateY(16px);
+                background: var(--d2);
+                border: 1px solid var(--bd);
+                padding: 13px 28px;
+                font-family: "Space Mono", monospace;
+                font-size: .6rem;
+                letter-spacing: .14em;
+                text-transform: uppercase;
+                color: var(--cream);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity .4s, transform .4s;
+                z-index: 1000;
+                white-space: nowrap;
+            }
+
+            .tst.show {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+
+            .tst.ok {
+                border-color: rgba(76, 175, 130, .4);
+                color: var(--gr);
+            }
+
+            .tst.bad {
+                border-color: rgba(201, 76, 76, .4);
+                color: var(--rd);
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            @keyframes fu {
+                from {
+                    opacity: 0;
+                    transform: translateY(14px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .fc>* {
+                animation: fu .5s ease both;
+            }
+
+            .fc>*:nth-child(1) {
+                animation-delay: .08s;
+            }
+
+            .fc>*:nth-child(2) {
+                animation-delay: .14s;
+            }
+
+            .fc>*:nth-child(3) {
+                animation-delay: .2s;
+            }
+
+            .fc>*:nth-child(4) {
+                animation-delay: .26s;
+            }
+
+            .fc>*:nth-child(5) {
+                animation-delay: .32s;
+            }
+
+            .fc>*:nth-child(6) {
+                animation-delay: .38s;
+            }
+
+            .fc>*:nth-child(7) {
+                animation-delay: .44s;
+            }
+
+            .fc>*:nth-child(8) {
+                animation-delay: .5s;
+            }
+
+            .fc>*:nth-child(9) {
+                animation-delay: .56s;
+            }
+
+            @media(max-width:860px) {
+                .lp {
+                    display: none;
+                }
+
+                .rp {
+                    padding: 80px 24px 40px;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="cur">
+            <div class="ring"></div>
+            <div class="dot"></div>
+        </div>
+        <div class="cr tl">CS50 / REGISTER</div>
+        <div class="cr brr">EST. 2026</div>
+        <div class="tst" id="tst"></div>
+        <div class="lp">
+            <div class="lpb"></div>
+            <div class="lpl"></div>
+            <div class="lt">
+                <a href="index.html" class="logo">CS<span>50</span></a>
+                <h2 class="ptitle">Join the<br><em>Journey.</em></h2>
+                <p class="psub">Create your account and begin competing in the world of colour and code.</p>
+            </div>
+            <div class="lb">
+                <div class="steps">
+                    <div class="step">
+                        <div class="sn">01</div>
+                        <div class="st"><strong>Create your account</strong>Name and a strong password.</div>
+                    </div>
+                    <div class="step">
+                        <div class="sn">02</div>
+                        <div class="st"><strong>Pick a username</strong>Your identity on the leaderboard.</div>
+                    </div>
+                    <div class="step">
+                        <div class="sn">03</div>
+                        <div class="st"><strong>Start playing</strong>All four games, immediately unlocked.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="rp">
+            <nav class="tnav">
+                <a href="/login">Sign in</a>
+                <a href="/register" class="on">Register</a>
+            </nav>
+            <div class="fc">
+                <p class="fey">&#10022; New account</p>
+                <h1 class="fti">Register</h1>
+                <p class="fsu">Already a member? <a href="/login">Sign in &rarr;</a></p>
+                <div class="fg">
+                    <form method='POST' action='/register'>
+                        <div class="fd">
+                            <label for="un">Username</label>
+                            <input type="text" id="un" name="un" placeholder="nocturne_player">
+                            <div class="fer" id="unE"></div>
+                        </div>
+                        <div class="fd">
+                            <label for="pw">Password</label>
+                            <div class="fw">
+                                <input type="password" id="pw" name="pw" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" id="pw">
+                                <button class="eye" type="button" id="eyeB">&#128065;</button>
+                            </div>
+                            <div class="pw-strength">
+                                <div class="pw-bar" id="pwBar"></div>
+                            </div>
+                            <div class="pw-label" id="pwLbl"></div>
+                            <div class="fer" id="pwE"></div>
+                        </div>
+                        <div class="fd">
+                            <label for="pw2">Confirm password</label>
+                            <div class="fw">
+                                <input type="password" id="confirmation" name='confirmation' placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+                                <button type="button" class="eye" id="eyeB2">&#128065;</button>
+                            </div>
+                            <div class="fer" id="pw2E"></div>
+                        </div>
+                    </div>
+
+                    <div class="terms-row">
+                        <div class="cw" id="termsW">
+                            <div class="cb"></div>
+                        </div>
+                        <span class="tl2">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>
+                    </div>
+                    <button type='submit' class="sb" id="subB">
+                        <span class="bt">Create account</span>
+                        <span class="bsp">
+                            <div class="spi"></div>
+                        </span>
+                    </button>
+                </form>
+                <div class="dv">
+                    <div class="dl"></div><span class="dt">or sign up with</span>
+                    <div class="dl"></div>
+                </div>
+                <div class="oar">
+                    <button class="ob">G&nbsp; Google</button>
+                    <button class="ob">&#8984;&nbsp; GitHub</button>
+                    <button class="ob">&#120143;&nbsp; Twitter</button>
+                </div>
+            </div>
+        </div>
+        <script>
+            const c = document.getElementById("cur"),
+                  d = c.querySelector(".dot"),
+                  r = c.querySelector(".ring");
+            let mx = -100,
+                my = -100,
+                rx = -100,
+                ry = -100;
+            document.addEventListener("mousemove", e => {
+                mx = e.clientX;
+                my = e.clientY;
+                d.style.left = mx + "px";
+                d.style.top = my + "px";
+            });
+            (function L() {
+                rx += (mx - rx) * .12;
+                ry += (my - ry) * .12;
+                r.style.left = rx + "px";
+                r.style.top = ry + "px";
+                requestAnimationFrame(L);
+            })();
+            const sh = v => document.body.classList.toggle("hov", v);
+            document.querySelectorAll("a,button,input,.cw").forEach(e => {
+                e.addEventListener("mouseenter", () => sh(true));
+                e.addEventListener("mouseleave", () => sh(false));
+            });
+
+            function setupEye(btnId, inputId) {
+                document.getElementById(btnId).addEventListener("click", () => {
+                    const p = document.getElementById(inputId),
+                          s = p.type === "password";
+                    p.type = s ? "text" : "password";
+                    document.getElementById(btnId).innerHTML = s ? "&#128584;" : "&#128065;";
+                });
+            }
+            setupEye("eyeB", "pw");
+            setupEye("eyeB2", "confirmation");
+            document.getElementById("termsW").addEventListener("click", () => document.getElementById("termsW").classList.toggle("on"));
+
+            function checkStrength(pw) {
+                let score = 0;
+                if (pw.length >= 8) score++;
+                if (pw.length >= 12) score++;
+                if (/[A-Z]/.test(pw)) score++;
+                if (/[0-9]/.test(pw)) score++;
+                if (/[^A-Za-z0-9]/.test(pw)) score++;
+                return score;
+            }
+            document.getElementById("pw").addEventListener("input", () => {
+                const v = document.getElementById("pw").value,
+                      sc = checkStrength(v);
+                const bar = document.getElementById("pwBar"),
+                      lbl = document.getElementById("pwLbl");
+                const labels = ["Too short", "Weak", "Fair", "Good", "Strong", "Excellent"];
+                const colors = ["#c94c4c", "#c94c4c", "#c9a84c", "#a8c94c", "#4caf82", "#4caf82"];
+                const pct = [0, 20, 40, 60, 80, 100];
+                bar.style.width = v ? pct[sc] + "%" : "0%";
+                bar.style.background = colors[sc];
+                lbl.textContent = v ? labels[sc] : "";
+                lbl.style.color = colors[sc];
+            });
+
+            function toast(m, t = "ok") {
+                const el = document.getElementById("tst");
+                el.textContent = m;
+                el.className = "tst " + t + " show";
+                setTimeout(() => el.classList.remove("show"), 2800);
+            }
+
+            function clr(ids) {
+                ids.forEach(i => {
+                    document.getElementById(i + "E") && (document.getElementById(i + "E").textContent = "");
+                    document.getElementById(i) && (document.getElementById(i).className = "");
+                });
+            }
+
+            function err(fid, eid, msg) {
+                document.getElementById(eid).textContent = msg;
+                document.getElementById(fid).classList.add("e");
+                return false;
+            }
+
+            document.getElementById("subB").addEventListener("click", () => {
+                const fn = document.getElementById("fn").value.trim();
+                const un = document.getElementById("un").value.trim();
+                const em = document.getElementById("em").value.trim();
+                const pw = document.getElementById("pw").value;
+                const pw2 = document.getElementById("pw2").value;
+                const agreed = document.getElementById("termsW").classList.contains("on");
+                clr(["fn", "un", "em", "pw", "pw2"]);
+                let ok = true;
+                if (!fn) {
+                    err("fn", "fnE", "First name required");
+                    ok = false;
+                } else document.getElementById("fn").classList.add("s");
+                if (!un || un.length < 3) {
+                    err("un", "unE", "Username must be 3+ characters");
+                    ok = false;
+                } else document.getElementById("un").classList.add("s");
+                if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+                    err("em", "emE", "Valid email required");
+                    ok = false;
+                } else document.getElementById("em").classList.add("s");
+                if (!pw || pw.length < 6) {
+                    err("pw", "pwE", "Min 6 characters");
+                    ok = false;
+                } else document.getElementById("pw").classList.add("s");
+                if (pw !== pw2) {
+                    err("pw2", "pw2E", "Passwords do not match");
+                    ok = false;
+                } else if (pw2) document.getElementById("pw2").classList.add("s");
+                if (!agreed) {
+                    toast("Please agree to the Terms of Service.", "bad");
+                    ok = false;
+                }
+                if (!ok) return;
+                const b = document.getElementById("subB");
+                b.classList.add("ld");
+                setTimeout(() => {
+                    b.classList.remove("ld");
+                    toast("Account created. Welcome to Nocturne.", "ok");
+                }, 1800);
+            });
+            document.querySelectorAll(".ob").forEach(b => b.addEventListener("click", () => toast("OAuth integration coming soon.", "ok")));
+        </script>
+    </body>
+
+</html>

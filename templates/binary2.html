@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BINAIRE II — Character to Binary</title>
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+        <style>
+            :root {
+                --ink: #0a0a0f;
+                --gold: #c9a84c;
+                --gold-light: #e8c97a;
+                --cream: #ede8de;
+                --muted: #5a5550;
+                --dim: #1a1a22;
+                --border: rgba(201, 168, 76, 0.15);
+                --green: #4caf82;
+                --red: #c94c4c;
+            }
+
+            *,
+            *::before,
+            *::after {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                background: var(--ink);
+                color: var(--cream);
+                font-family: 'Cormorant Garamond', Georgia, serif;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                overflow-x: hidden;
+                cursor: none;
+            }
+
+            body::before {
+                content: '';
+                position: fixed;
+                inset: 0;
+                z-index: 9998;
+                pointer-events: none;
+                opacity: .04;
+                background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+                background-size: 200px 200px;
+            }
+
+            #cursor {
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 9999;
+                pointer-events: none;
+            }
+
+            #cursor .dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--gold);
+                position: absolute;
+                transform: translate(-50%, -50%);
+            }
+
+            #cursor .ring {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                border: 1px solid rgba(201, 168, 76, .5);
+                position: absolute;
+                transform: translate(-50%, -50%);
+                transition: width .3s, height .3s, border-color .3s;
+            }
+
+            body.hovering #cursor .ring {
+                width: 52px;
+                height: 52px;
+                border-color: var(--gold);
+            }
+
+            body.hovering #cursor .dot {
+                transform: translate(-50%, -50%) scale(0);
+            }
+
+            header {
+                width: 100%;
+                padding: 28px 60px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .logo {
+                font-family: 'Playfair Display', serif;
+                font-size: 1.3rem;
+                letter-spacing: .35em;
+                color: var(--cream);
+            }
+
+            .logo span {
+                color: var(--gold);
+            }
+
+            .hright {
+                display: flex;
+                align-items: center;
+                gap: 40px;
+            }
+
+            .hstat .snum {
+                font-family: 'Playfair Display', serif;
+                font-size: 2rem;
+                font-weight: 900;
+                color: var(--gold);
+                line-height: 1;
+            }
+
+            .hstat .slbl {
+                font-family: 'Space Mono', monospace;
+                font-size: .58rem;
+                letter-spacing: .2em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+
+            .hstat.s2 .snum {
+                color: var(--cream);
+            }
+
+            main {
+                flex: 1;
+                width: 100%;
+                max-width: 900px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 52px 40px 80px;
+            }
+
+            a {
+                text-decoration: none;
+            }
+
+            .diff-bar {
+                display: flex;
+                gap: 2px;
+                margin-bottom: 44px;
+                border: 1px solid var(--border);
+                overflow: hidden;
+            }
+
+            .diff-btn {
+                padding: 11px 32px;
+                background: transparent;
+                border: none;
+                font-family: 'Space Mono', monospace;
+                font-size: .63rem;
+                letter-spacing: .18em;
+                text-transform: uppercase;
+                color: var(--muted);
+                cursor: none;
+                transition: color .3s, background .3s;
+            }
+
+            .diff-btn::after {
+                content: attr(data-hint);
+                display: block;
+                font-size: .48rem;
+                letter-spacing: .08em;
+                margin-top: 3px;
+                opacity: .5;
+            }
+
+            .diff-btn.active {
+                background: rgba(201, 168, 76, .1);
+                color: var(--gold);
+            }
+
+            .diff-btn.reset {
+                background: rgba(201, 168, 76, .1);
+                color: var(--gold);
+            }
+
+            .diff-btn:hover:not(.active) {
+                color: var(--cream);
+                background: rgba(255, 255, 255, .03);
+            }
+
+            .prog-wrap {
+                width: 100%;
+                margin-bottom: 36px;
+            }
+
+            .prog-meta {
+                display: flex;
+                justify-content: space-between;
+                font-family: 'Space Mono', monospace;
+                font-size: .57rem;
+                letter-spacing: .18em;
+                text-transform: uppercase;
+                color: var(--muted);
+                margin-bottom: 8px;
+            }
+
+            .prog-bar {
+                height: 2px;
+                background: rgba(255, 255, 255, .06);
+                border-radius: 1px;
+                overflow: hidden;
+            }
+
+            .prog-fill {
+                height: 100%;
+                background: var(--gold);
+                transition: width .6s cubic-bezier(.2, .8, .3, 1);
+                border-radius: 1px;
+            }
+
+            .round-dots {
+                display: flex;
+                gap: 6px;
+                justify-content: center;
+                margin-bottom: 44px;
+                flex-wrap: wrap;
+            }
+
+            .round-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                border: 1px solid var(--border);
+                transition: background .4s, border-color .4s;
+            }
+
+            .round-dot.ok {
+                background: var(--green);
+                border-color: var(--green);
+            }
+
+            .round-dot.ng {
+                background: var(--red);
+                border-color: var(--red);
+            }
+
+            .round-dot.cur {
+                border-color: var(--gold);
+                box-shadow: 0 0 6px rgba(201, 168, 76, .4);
+            }
+
+            /* ── CHARACTER DISPLAY ── */
+            .char-card {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 16px;
+                background: var(--dim);
+                border: 1px solid var(--border);
+                padding: 52px 40px 44px;
+                position: relative;
+                overflow: hidden;
+                margin-bottom: 40px;
+            }
+
+            /* decorative binary waterfall behind */
+            .char-card-bg {
+                position: absolute;
+                inset: 0;
+                overflow: hidden;
+                pointer-events: none;
+                opacity: .06;
+                font-family: 'Space Mono', monospace;
+                font-size: .7rem;
+                color: var(--gold);
+                letter-spacing: .12em;
+                line-height: 1.6;
+                display: flex;
+                flex-wrap: wrap;
+                align-content: flex-start;
+                padding: 8px;
+                user-select: none;
+            }
+
+            .cc-eyebrow {
+                font-family: 'Space Mono', monospace;
+                font-size: .6rem;
+                letter-spacing: .28em;
+                text-transform: uppercase;
+                color: var(--gold);
+                position: relative;
+                z-index: 1;
+            }
+
+            .cc-char {
+                font-family: 'Playfair Display', serif;
+                font-size: clamp(5rem, 14vw, 10rem);
+                font-weight: 900;
+                color: var(--cream);
+                line-height: 1;
+                position: relative;
+                z-index: 1;
+                text-shadow: 0 0 80px rgba(201, 168, 76, .15);
+                animation: charPop .5s cubic-bezier(.2, .8, .3, 1);
+            }
+
+            .cc-meta {
+                font-family: 'Space Mono', monospace;
+                font-size: .62rem;
+                letter-spacing: .2em;
+                text-transform: uppercase;
+                color: var(--muted);
+                position: relative;
+                z-index: 1;
+            }
+
+            .cc-sub {
+                font-family: 'Cormorant Garamond', serif;
+                font-style: italic;
+                font-size: 1.05rem;
+                color: var(--muted);
+                position: relative;
+                z-index: 1;
+            }
+
+            /* ── BINARY OPTIONS ── */
+            .opts {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                width: 100%;
+                margin-bottom: 36px;
+            }
+
+            .opt-btn {
+                background: var(--dim);
+                border: 1px solid var(--border);
+                padding: 28px 24px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+                cursor: none;
+                position: relative;
+                overflow: hidden;
+                transition: border-color .2s, transform .2s, background .2s;
+            }
+
+            .opt-btn:hover:not(:disabled) {
+                border-color: rgba(201, 168, 76, .4);
+                background: rgba(201, 168, 76, .04);
+                transform: translateY(-3px);
+            }
+
+            .opt-btn:disabled {
+                cursor: not-allowed;
+            }
+
+            .opt-letter {
+                font-family: 'Space Mono', monospace;
+                font-size: .55rem;
+                letter-spacing: .18em;
+                text-transform: uppercase;
+                color: rgba(201, 168, 76, .45);
+            }
+
+            .opt-bin {
+                font-family: 'Space Mono', monospace;
+                font-size: clamp(1rem, 2.5vw, 1.5rem);
+                font-weight: 700;
+                letter-spacing: .2em;
+                color: var(--cream);
+                text-align: center;
+                line-height: 1.5;
+            }
+
+            .opt-bin .b0 {
+                color: var(--muted);
+            }
+
+            .opt-bin .b1 {
+                color: var(--gold);
+            }
+
+            .opt-hint {
+                font-family: 'Cormorant Garamond', serif;
+                font-style: italic;
+                font-size: .9rem;
+                color: var(--muted);
+            }
+
+            .opt-btn.correct {
+                border-color: var(--green);
+                background: rgba(76, 175, 130, .07);
+                animation: cPulse .5s ease;
+            }
+
+            .opt-btn.correct .opt-bin .b1 {
+                color: var(--green);
+            }
+
+            .opt-btn.correct .opt-bin .b0 {
+                color: rgba(76, 175, 130, .4);
+            }
+
+            .opt-btn.wrong {
+                border-color: var(--red);
+                background: rgba(201, 76, 76, .07);
+                animation: wShake .4s ease;
+            }
+
+            .opt-btn.wrong .opt-bin {
+                color: var(--red);
+            }
+
+            .opt-btn.reveal {
+                border-color: var(--green);
+                background: rgba(76, 175, 130, .07);
+            }
+
+            .opt-btn.reveal .opt-bin .b1 {
+                color: var(--green);
+            }
+
+            /* side label */
+            .opt-side {
+                position: absolute;
+                top: 14px;
+                right: 18px;
+                font-family: 'Space Mono', monospace;
+                font-size: .52rem;
+                letter-spacing: .15em;
+                color: rgba(201, 168, 76, .25);
+            }
+
+            .opt-btn.correct .opt-side {
+                color: var(--green);
+            }
+
+            .opt-btn.wrong .opt-side {
+                color: var(--red);
+            }
+
+            .opt-btn.reveal .opt-side {
+                color: var(--green);
+            }
+
+            .feedback {
+                height: 72px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                text-align: center;
+            }
+
+            .fb-title {
+                font-family: 'Playfair Display', serif;
+                font-size: 1.7rem;
+                font-weight: 900;
+            }
+
+            .fb-title.good {
+                color: var(--green);
+            }
+
+            .fb-title.bad {
+                color: var(--red);
+            }
+
+            .fb-sub {
+                font-family: 'Space Mono', monospace;
+                font-size: .6rem;
+                letter-spacing: .18em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+
+            .next-btn {
+                padding: 15px 52px;
+                border: 1px solid var(--gold);
+                color: var(--gold);
+                background: transparent;
+                font-family: 'Space Mono', monospace;
+                font-size: .66rem;
+                letter-spacing: .22em;
+                text-transform: uppercase;
+                cursor: none;
+                position: relative;
+                overflow: hidden;
+                transition: color .4s, opacity .4s, transform .4s;
+                opacity: 0;
+                pointer-events: none;
+                transform: translateY(10px);
+            }
+
+            .next-btn::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: var(--gold);
+                transform: translateX(-102%);
+                transition: transform .4s cubic-bezier(.3, 0, 0, 1);
+                z-index: -1;
+            }
+
+            .next-btn:hover {
+                color: var(--ink);
+            }
+
+            .next-btn:hover::before {
+                transform: translateX(0);
+            }
+
+            .next-btn.vis {
+                opacity: 1;
+                pointer-events: all;
+                transform: translateY(0);
+            }
+
+            .gameover {
+                display: none;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 30px;
+                width: 100%;
+                animation: fadeInUp .6s ease forwards;
+            }
+
+            .gameover.show {
+                display: flex;
+            }
+
+            .go-eyebrow {
+                font-family: 'Space Mono', monospace;
+                font-size: .66rem;
+                letter-spacing: .28em;
+                text-transform: uppercase;
+                color: var(--gold);
+            }
+
+            .go-title {
+                font-family: 'Playfair Display', serif;
+                font-size: clamp(3rem, 8vw, 5.5rem);
+                font-weight: 900;
+                color: var(--cream);
+                line-height: .95;
+            }
+
+            .go-title span {
+                color: var(--gold);
+                font-style: italic;
+            }
+
+            .go-stats {
+                display: flex;
+                gap: 56px;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .go-stat .gn {
+                font-family: 'Playfair Display', serif;
+                font-size: 3rem;
+                font-weight: 900;
+                color: var(--gold);
+                line-height: 1;
+            }
+
+            .go-stat .gl {
+                font-family: 'Space Mono', monospace;
+                font-size: .58rem;
+                letter-spacing: .2em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+
+            .go-div {
+                width: 100px;
+                height: 1px;
+                background: var(--border);
+            }
+
+            .go-grade {
+                font-family: 'Playfair Display', serif;
+                font-style: italic;
+                font-size: 1.3rem;
+                color: var(--muted);
+                max-width: 420px;
+                line-height: 1.5;
+            }
+
+            .play-again {
+                padding: 17px 60px;
+                background: var(--gold);
+                color: var(--ink);
+                border: none;
+                font-family: 'Space Mono', monospace;
+                font-size: .68rem;
+                letter-spacing: .2em;
+                text-transform: uppercase;
+                font-weight: 700;
+                cursor: none;
+                transition: background .3s, transform .2s;
+            }
+
+            .play-again:hover {
+                background: var(--gold-light);
+                transform: translateY(-2px);
+            }
+
+            .corner {
+                position: fixed;
+                font-family: 'Space Mono', monospace;
+                font-size: .52rem;
+                letter-spacing: .18em;
+                color: rgba(201, 168, 76, .2);
+                pointer-events: none;
+            }
+
+            .corner.tl {
+                top: 20px;
+                left: 20px;
+            }
+
+            .corner.br {
+                bottom: 20px;
+                right: 20px;
+            }
+
+            @keyframes charPop {
+                from {
+                    opacity: 0;
+                    transform: scale(.88) translateY(8px)
+                }
+
+                to {
+                    opacity: 1;
+                    transform: scale(1) translateY(0)
+                }
+            }
+
+            @keyframes cPulse {
+                0% {
+                    transform: scale(1)
+                }
+
+                30% {
+                    transform: scale(1.03)
+                }
+
+                100% {
+                    transform: scale(1)
+                }
+            }
+
+            @keyframes wShake {
+
+                0%,
+                100% {
+                    transform: translateX(0)
+                }
+
+                20% {
+                    transform: translateX(-5px)
+                }
+
+                40% {
+                    transform: translateX(5px)
+                }
+
+                60% {
+                    transform: translateX(-4px)
+                }
+
+                80% {
+                    transform: translateX(4px)
+                }
+            }
+
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(24px)
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0)
+                }
+            }
+
+            @keyframes waterfall {
+                from {
+                    transform: translateY(-100%)
+                }
+
+                to {
+                    transform: translateY(0%)
+                }
+            }
+
+            @media(max-width:680px) {
+                header {
+                    padding: 20px 24px;
+                }
+
+                main {
+                    padding: 36px 16px 60px;
+                }
+
+                .opts {
+                    grid-template-columns: 1fr;
+                }
+
+                .opt-bin {
+                    font-size: .9rem;
+                    letter-spacing: .1em;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <div id="cursor">
+            <div class="ring"></div>
+            <div class="dot"></div>
+        </div>
+        <div class="corner tl">BINAIRE II / CHAR → BINARY</div>
+        <div class="corner br" id="diffLbl">MODE: EASY</div>
+
+        <header>
+            <a href='/' class="logo">BIN<span>AIRE II</span></a>
+            <div class="hright">
+                <div class='hstat'>
+                    <a href="/" class="snum">Home</a>
+                </div>
+                <div class="hstat s2">
+                    <div class="snum" id="streakN">0</div>
+                    <div class="slbl">Streak 🔥</div>
+                </div>
+                <div class="hstat">
+                    <div class="snum" id="scoreN">0</div>
+                    <div class="slbl">Score</div>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="diff-bar">
+                <button class="diff-btn active" data-diff="easy" data-hint="Digits 0–9">Easy</button>
+                <button class="diff-btn" data-diff="medium" data-hint="A–Z uppercase">Medium</button>
+                <button class="diff-btn" data-diff="hard" data-hint="Letters + digits">Hard</button>
+                <button class="diff-btn reset" id="playAgain1">Reset</button>
+            </div>
+
+            <div id="gameArea" style="display:flex;flex-direction:column;align-items:center;width:100%">
+                <div class="prog-wrap">
+                    <div class="prog-meta"><span id="rndLbl">Round 1 of 10</span><span id="accLbl">Accuracy —</span></div>
+                    <div class="prog-bar">
+                        <div class="prog-fill" id="progFill" style="width:0%"></div>
+                    </div>
+                </div>
+                <div class="round-dots" id="rndDots"></div>
+
+                <div class="char-card" id="charCard">
+                    <div class="char-card-bg" id="binaryBg"></div>
+                    <div class="cc-eyebrow">Encode this character to binary</div>
+                    <div class="cc-char" id="charDisplay">A</div>
+                    <div class="cc-meta" id="charMeta">ASCII 65</div>
+                    <div class="cc-sub">Which 8-bit binary sequence represents this character?</div>
+                </div>
+
+                <div class="opts" id="optsGrid"></div>
+                <div class="feedback">
+                    <div class="fb-title" id="fbTitle"></div>
+                    <div class="fb-sub" id="fbSub"></div>
+                </div>
+                <button class="next-btn" id="nextBtn">Next character →</button>
+            </div>
+
+            <div class="gameover" id="gameOver">
+                <p class="go-eyebrow">Session complete</p>
+                <h2 class="go-title" id="goTitle">Byte<br><span>perfect.</span></h2>
+                <div class="go-div"></div>
+                <div class="go-stats">
+                    <div class="go-stat">
+                        <div class="gn" id="goScore">0</div>
+                        <div class="gl">Score</div>
+                    </div>
+                    <div class="go-stat">
+                        <div class="gn" id="goCorrect">0/10</div>
+                        <div class="gl">Correct</div>
+                    </div>
+                    <div class="go-stat">
+                        <div class="gn" id="goBest">0</div>
+                        <div class="gl">Best Streak</div>
+                    </div>
+                </div>
+                <p class="go-grade" id="goGrade"></p>
+                <button class="play-again" id="playAgain">Continue</button>
+            </div>
+        </main>
+
+        <script>
+            // cursor
+            const cur = document.getElementById('cursor');
+            const cdot = cur.querySelector('.dot'),
+                  cring = cur.querySelector('.ring');
+            let mx = -100,
+                my = -100,
+                rx = -100,
+                ry = -100;
+            document.addEventListener('mousemove', e => {
+                mx = e.clientX;
+                my = e.clientY;
+                cdot.style.left = mx + 'px';
+                cdot.style.top = my + 'px';
+            });
+            (function loop() {
+                rx += (mx - rx) * .12;
+                ry += (my - ry) * .12;
+                cring.style.left = rx + 'px';
+                cring.style.top = ry + 'px';
+                requestAnimationFrame(loop);
+            })();
+            const sh = v => document.body.classList.toggle('hovering', v);
+            document.querySelectorAll('button').forEach(b => {
+                b.addEventListener('mouseenter', () => sh(true));
+                b.addEventListener('mouseleave', () => sh(false));
+            });
+
+            const ROUNDS = 10;
+            const PTS = {
+                easy: 100,
+                medium: 200,
+                hard: 350
+            };
+            const CHAR_SETS = {
+                easy: '0123456789',
+                medium: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                hard: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+            };
+            // difficulty controls how similar the wrong options are
+            // easy: totally different chars from same set -> very different binary
+            // medium: chars close in ASCII -> similar binary
+            // hard: chars extremely close in ASCII value -> 1-2 bit difference
+            let diff = 'easy',
+                round = 0,
+                score = 0,
+                streak = 0,
+                best = 0,
+                history = [],
+                answered = false,
+                correctChar = '',
+                correctBin = '';
+
+            function ri(a, b) {
+                return Math.floor(Math.random() * (b - a + 1)) + a;
+            }
+
+            function shuffle(a) {
+                for (let i = a.length - 1; i > 0; i--) {
+                    const j = ri(0, i);
+                    [a[i], a[j]] = [a[j], a[i]];
+                }
+                return a;
+            }
+
+            function charToBin(c) {
+                return c.charCodeAt(0).toString(2).padStart(8, '0');
+            }
+
+            function formatBin(b) {
+                return b.split('').map(bit => `<span class="b${bit}">${bit}</span>`).join('');
+            }
+
+            function bitDiff(a, b) {
+                let d = 0;
+                for (let i = 0; i < a.length; i++)
+                    if (a[i] !== b[i]) d++;
+                return d;
+            }
+
+            function getCharSet() {
+                return CHAR_SETS[diff].split('');
+            }
+
+            function generateOptions(correct) {
+                const correctB = charToBin(correct);
+                const opts = [correct];
+                const set = getCharSet();
+                let at = 0;
+
+                // For hard mode, prefer chars with similar binary (close ASCII value)
+                // For medium, some overlap
+                // For easy, just pick different chars
+
+                while (opts.length < 5 && at < 500) {
+                    at++;
+                    let cand;
+                    if (diff === 'hard') {
+                        // perturb ASCII by 1-4
+                        const delta = ri(1, 4) * (Math.random() < .5 ? 1 : -1);
+                        const code = correct.charCodeAt(0) + delta;
+                        if (code < 32 || code > 126) continue;
+                        cand = String.fromCharCode(code);
+                        const b = charToBin(cand);
+                        // want 1-3 bit difference
+                        if (bitDiff(correctB, b) < 1 || bitDiff(correctB, b) > 3) continue;
+                    } else if (diff === 'medium') {
+                        // delta 2-20 in ASCII
+                        const delta = ri(2, 20) * (Math.random() < .5 ? 1 : -1);
+                        const code = correct.charCodeAt(0) + delta;
+                        if (code < 32 || code > 126) continue;
+                        cand = String.fromCharCode(code);
+                        if (set.includes(cand) && cand !== correct) {} else {
+                            cand = set[ri(0, set.length - 1)];
+                        }
+                        if (bitDiff(correctB, charToBin(cand)) < 2) continue;
+                    } else {
+                        // easy: pick random from set, want >3 bit diff
+                        cand = set[ri(0, set.length - 1)];
+                        if (bitDiff(correctB, charToBin(cand)) < 3) continue;
+                    }
+                    if (!opts.includes(cand)) opts.push(cand);
+                }
+                // fallback
+                const full = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                while (opts.length < 5) {
+                    const c = full[ri(0, full.length - 1)];
+                    if (!opts.includes(c)) opts.push(c);
+                }
+                return shuffle(opts);
+            }
+
+            // generate background binary rain
+            function genBgBinary() {
+                const el = document.getElementById('binaryBg');
+                el.innerHTML = '';
+                const chars = 200;
+                for (let i = 0; i < chars; i++) {
+                    const span = document.createElement('span');
+                    span.textContent = Math.random() < .5 ? '0' : '1';
+                    span.style.padding = '2px 3px';
+                    el.appendChild(span);
+                }
+            }
+
+            function updateDots() {
+                const c = document.getElementById('rndDots');
+                c.innerHTML = '';
+                for (let i = 0; i < ROUNDS; i++) {
+                    const d = document.createElement('div');
+                    d.className = 'round-dot';
+                    if (i < round) d.classList.add(history[i] ? 'ok' : 'ng');
+                    else if (i === round) d.classList.add('cur');
+                    c.appendChild(d);
+                }
+            }
+
+            function updateProg() {
+                document.getElementById('progFill').style.width = (round / ROUNDS * 100) + '%';
+                document.getElementById('rndLbl').textContent = `Round ${round+1} of ${ROUNDS}`;
+                const cor = history.filter(Boolean).length;
+                document.getElementById('accLbl').textContent = round > 0 ? `Accuracy ${Math.round(cor/round*100)}%` : 'Accuracy —';
+            }
+
+            const LABELS = ['A', 'B', 'C', 'D', 'E'];
+
+            function renderRound() {
+                if (round >= ROUNDS) {
+                    showGameOver();
+                    return;
+                }
+                answered = false;
+                const set = getCharSet();
+                correctChar = set[ri(0, set.length - 1)];
+                correctBin = charToBin(correctChar);
+
+                genBgBinary();
+
+                // animate char display
+                const charEl = document.getElementById('charDisplay');
+                charEl.style.opacity = '0';
+                charEl.style.transform = 'scale(.88) translateY(8px)';
+                setTimeout(() => {
+                    charEl.textContent = correctChar;
+                    charEl.style.transition = 'opacity .5s ease, transform .5s cubic-bezier(.2,.8,.3,1)';
+                    charEl.style.opacity = '1';
+                    charEl.style.transform = 'scale(1) translateY(0)';
+                }, 80);
+                document.getElementById('charMeta').textContent = `ASCII ${correctChar.charCodeAt(0)} · Decimal ${correctChar.charCodeAt(0)}`;
+
+                const opts = generateOptions(correctChar);
+                const grid = document.getElementById('optsGrid');
+                grid.innerHTML = '';
+                opts.forEach((ch, i) => {
+                    const bin = charToBin(ch);
+                    const btn = document.createElement('button');
+                    btn.className = 'opt-btn';
+                    btn.dataset.char = ch;
+                    btn.dataset.bin = bin;
+                    btn.innerHTML = `
+        <div class="opt-side">${LABELS[i]}</div>
+        <div class="opt-letter">Option ${LABELS[i]}</div>
+        <div class="opt-bin">${formatBin(bin)}</div>
+        <div class="opt-hint">${bin.slice(0,4)} ${bin.slice(4)}</div>
+      `;
+                    btn.addEventListener('mouseenter', () => sh(true));
+                    btn.addEventListener('mouseleave', () => sh(false));
+                    btn.addEventListener('click', () => handleAnswer(btn, ch, bin));
+                    grid.appendChild(btn);
+                });
+
+                // 5 options but grid is 2-col — make it work for 5 with last spanning
+                if (opts.length === 5) {
+                    // add empty or style last to be full width
+                    const last = grid.lastElementChild;
+                    last.style.gridColumn = '1 / -1';
+                }
+
+                document.getElementById('fbTitle').textContent = '';
+                document.getElementById('fbSub').textContent = '';
+                document.getElementById('nextBtn').classList.remove('vis');
+                updateProg();
+                updateDots();
+            }
+
+            function handleAnswer(btn, chosen, chosenBin) {
+                if (answered) return;
+                answered = true;
+                document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+                const ok = chosen === correctChar;
+                history.push(ok);
+
+                if (ok) {
+                    btn.classList.add('correct');
+                    const pts = PTS[diff] + (streak * 20);
+                    score += pts;
+                    streak++;
+                    if (streak > best) best = streak;
+                    document.getElementById('fbTitle').textContent = pick(['Encoded.', 'Exquisite.', 'Correct.', 'Brilliant.', 'Parfait.']);
+                    document.getElementById('fbTitle').className = 'fb-title good';
+                    document.getElementById('fbSub').textContent = `+${pts} pts · "${correctChar}" = ${correctBin.slice(0,4)} ${correctBin.slice(4)}`;
+                } else {
+                    btn.classList.add('wrong');
+                    streak = 0;
+                    document.querySelectorAll('.opt-btn').forEach(b => {
+                        if (b.dataset.char === correctChar) b.classList.add('reveal');
+                    });
+                    // also show bit diff
+                    const diff2 = bitDiff(chosenBin, correctBin);
+                    document.getElementById('fbTitle').textContent = pick(['Not quite.', 'Almost.', 'Off by bits.', 'Keep going.']);
+                    document.getElementById('fbTitle').className = 'fb-title bad';
+                    document.getElementById('fbSub').textContent = `"${correctChar}" = ${correctBin.slice(0,4)} ${correctBin.slice(4)} · You were off by ${diff2} bit${diff2!==1?'s':''}`;
+                }
+                document.getElementById('scoreN').textContent = score;
+                document.getElementById('streakN').textContent = streak;
+                round++;
+                document.getElementById('nextBtn').classList.add('vis');
+                updateDots();
+            }
+
+            function pick(a) {
+                return a[ri(0, a.length - 1)];
+            }
+
+            function showGameOver() {
+                document.getElementById('gameArea').style.display = 'none';
+                const go = document.getElementById('gameOver');
+                go.classList.add('show');
+                const cor = history.filter(Boolean).length,
+                      pct = Math.round(cor / ROUNDS * 100);
+                document.getElementById('goScore').textContent = score;
+                document.getElementById('goCorrect').textContent = `${cor}/${ROUNDS}`;
+                document.getElementById('goBest').textContent = best;
+                const ts = ['Byte<br><span>perfect.</span>', 'Machine<br><span>fluent.</span>', 'Bit by<br><span>bit.</span>', 'Keep<br><span>encoding.</span>', 'Lost in<br><span>the bits.</span>'];
+                const gs = ['"Every character encoded flawlessly. The machines salute you."', '"You think in binary. The digital world is your native tongue."', '"A solid grasp of ASCII. Keep practising and you\'ll be fluent."', '"Binary is a language — you\'re learning the alphabet."', '"01110111 01101000 01111001 — that\'s \'why\', if you were wondering."'];
+                const idx = pct === 100 ? 0 : pct >= 80 ? 1 : pct >= 60 ? 2 : pct >= 40 ? 3 : 4;
+                document.getElementById('goTitle').innerHTML = ts[idx];
+                document.getElementById('goGrade').textContent = gs[idx];
+            }
+
+            document.querySelectorAll('.diff-btn').forEach(b => {
+                if (!b.dataset.diff) return;
+                b.addEventListener('mouseenter', () => sh(true));
+                b.addEventListener('mouseleave', () => sh(false));
+                b.addEventListener('click', () => {
+                    document.querySelectorAll('.diff-btn').forEach(x => x.classList.remove('active'));
+                    b.classList.add('active');
+                    diff = b.dataset.diff;
+                    document.getElementById('diffLbl').textContent = 'MODE: ' + diff.toUpperCase();
+                    if (round === 0) renderRound();
+                });
+            });
+            document.getElementById('nextBtn').addEventListener('click', () => {
+                document.getElementById('nextBtn').classList.remove('vis');
+                renderRound();
+            });
+            document.getElementById("playAgain").addEventListener("click", async () => {
+                try {
+                    // Send score & streak
+                    await fetch("/binary2", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        body: `score=${score}&streak=${best}&game=chr`
+                    });
+
+                    round = 0;
+                    score = 0;
+                    streak = 0;
+                    best = 0;
+                    history = [];
+                    document.getElementById('scoreN').textContent = 0;
+                    document.getElementById('streakN').textContent = 0;
+                    document.getElementById('gameOver').classList.remove('show');
+                    const ga = document.getElementById('gameArea');
+                    ga.style.display = 'flex';
+                    ga.style.flexDirection = 'column';
+                    ga.style.alignItems = 'center';
+                    renderRound();
+                } catch (err) {
+                    console.error("Failed to submit score", err);
+                }
+            });
+            document.getElementById('playAgain1').addEventListener('click', () => {
+                round = 0;
+                score = 0;
+                streak = 0;
+                best = 0;
+                history = [];
+                document.getElementById('scoreN').textContent = 0;
+                document.getElementById('streakN').textContent = 0;
+                document.getElementById('gameOver').classList.remove('show');
+                const ga = document.getElementById('gameArea');
+                ga.style.display = 'flex';
+                ga.style.flexDirection = 'column';
+                ga.style.alignItems = 'center';
+                renderRound();
+            });
+
+            renderRound();
+        </script>
+    </body>
+
+</html>

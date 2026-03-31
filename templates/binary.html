@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BINAIRE — Binary to Character</title>
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+        <style>
+            :root {
+                --ink: #0a0a0f;
+                --gold: #c9a84c;
+                --gold-light: #e8c97a;
+                --cream: #ede8de;
+                --muted: #5a5550;
+                --dim: #1a1a22;
+                --border: rgba(201, 168, 76, 0.15);
+                --green: #4caf82;
+                --red: #c94c4c;
+            }
+
+            *,
+            *::before,
+            *::after {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                background: var(--ink);
+                color: var(--cream);
+                font-family: 'Cormorant Garamond', Georgia, serif;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                overflow-x: hidden;
+                cursor: none;
+            }
+
+            body::before {
+                content: '';
+                position: fixed;
+                inset: 0;
+                z-index: 9998;
+                pointer-events: none;
+                opacity: 0.04;
+                background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+                background-size: 200px 200px;
+            }
+
+            #cursor {
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 9999;
+                pointer-events: none;
+            }
+
+            #cursor .dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--gold);
+                position: absolute;
+                transform: translate(-50%, -50%);
+            }
+
+            #cursor .ring {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                border: 1px solid rgba(201, 168, 76, 0.5);
+                position: absolute;
+                transform: translate(-50%, -50%);
+                transition: width .3s, height .3s, border-color .3s;
+            }
+
+            body.hovering #cursor .ring {
+                width: 52px;
+                height: 52px;
+                border-color: var(--gold);
+            }
+
+            body.hovering #cursor .dot {
+                transform: translate(-50%, -50%) scale(0);
+            }
+
+            header {
+                width: 100%;
+                padding: 28px 60px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .logo {
+                font-family: 'Playfair Display', serif;
+                font-size: 1.3rem;
+                letter-spacing: 0.35em;
+                color: var(--cream);
+            }
+
+            .logo span {
+                color: var(--gold);
+            }
+
+            .header-right {
+                display: flex;
+                align-items: center;
+                gap: 40px;
+            }
+
+            .hstat .snum {
+                font-family: 'Playfair Display', serif;
+                font-size: 2rem;
+                font-weight: 900;
+                color: var(--gold);
+                line-height: 1;
+            }
+
+            .hstat .slbl {
+                font-family: 'Space Mono', monospace;
+                font-size: 0.58rem;
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+
+            .hstat.s2 .snum {
+                color: var(--cream);
+            }
+
+            main {
+                flex: 1;
+                width: 100%;
+                max-width: 860px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 52px 40px 80px;
+                gap: 0;
+            }
+
+            a {
+                text-decoration: none;
+            }
+
+            .diff-bar {
+                display: flex;
+                gap: 2px;
+                margin-bottom: 44px;
+                border: 1px solid var(--border);
+                overflow: hidden;
+            }
+
+            .diff-btn {
+                padding: 11px 32px;
+                background: transparent;
+                border: none;
+                font-family: 'Space Mono', monospace;
+                font-size: 0.63rem;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: var(--muted);
+                cursor: none;
+                transition: color .3s, background .3s;
+            }
+
+            .diff-btn::after {
+                content: attr(data-hint);
+                display: block;
+                font-size: 0.48rem;
+                letter-spacing: 0.08em;
+                margin-top: 3px;
+                opacity: 0.5;
+            }
+
+            .diff-btn.active {
+                background: rgba(201, 168, 76, 0.1);
+                color: var(--gold);
+            }
+
+            .diff-btn.reset {
+                background: rgba(201, 168, 76, 0.1);
+                color: var(--gold);
+            }
+
+            .diff-btn:hover:not(.active) {
+                color: var(--cream);
+                background: rgba(255, 255, 255, 0.03);
+            }
+
+            .prog-wrap {
+                width: 100%;
+                margin-bottom: 36px;
+            }
+
+            .prog-meta {
+                display: flex;
+                justify-content: space-between;
+                font-family: 'Space Mono', monospace;
+                font-size: 0.57rem;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: var(--muted);
+                margin-bottom: 8px;
+            }
+
+            .prog-bar {
+                height: 2px;
+                background: rgba(255, 255, 255, 0.06);
+                border-radius: 1px;
+                overflow: hidden;
+            }
+
+            .prog-fill {
+                height: 100%;
+                background: var(--gold);
+                transition: width .6s cubic-bezier(.2, .8, .3, 1);
+                border-radius: 1px;
+            }
+
+            .round-dots {
+                display: flex;
+                gap: 6px;
+                justify-content: center;
+                margin-bottom: 44px;
+                flex-wrap: wrap;
+            }
+
+            .round-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                border: 1px solid var(--border);
+                transition: background .4s, border-color .4s;
+            }
+
+            .round-dot.ok {
+                background: var(--green);
+                border-color: var(--green);
+            }
+
+            .round-dot.ng {
+                background: var(--red);
+                border-color: var(--red);
+            }
+
+            .round-dot.cur {
+                border-color: var(--gold);
+                box-shadow: 0 0 6px rgba(201, 168, 76, .4);
+            }
+
+            /* ── BINARY DISPLAY ── */
+            .binary-card {
+                width: 100%;
+                background: var(--dim);
+                border: 1px solid var(--border);
+                padding: 48px 40px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+                position: relative;
+                overflow: hidden;
+                margin-bottom: 40px;
+            }
+
+            .binary-card::before {
+                content: '01';
+                position: absolute;
+                right: -10px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-family: 'Space Mono', monospace;
+                font-size: 14rem;
+                font-weight: 700;
+                color: rgba(201, 168, 76, 0.03);
+                line-height: 1;
+                pointer-events: none;
+                user-select: none;
+            }
+
+            .bc-eyebrow {
+                font-family: 'Space Mono', monospace;
+                font-size: 0.6rem;
+                letter-spacing: 0.28em;
+                text-transform: uppercase;
+                color: var(--gold);
+            }
+
+            .bc-binary {
+                font-family: 'Space Mono', monospace;
+                font-size: clamp(1.6rem, 4vw, 2.8rem);
+                font-weight: 700;
+                color: var(--cream);
+                letter-spacing: 0.18em;
+                line-height: 1.3;
+                text-align: center;
+                position: relative;
+                z-index: 1;
+            }
+
+            .bc-binary .bit-0 {
+                color: var(--muted);
+            }
+
+            .bc-binary .bit-1 {
+                color: var(--gold);
+            }
+
+            .bc-sub {
+                font-family: 'Cormorant Garamond', serif;
+                font-style: italic;
+                font-size: 1rem;
+                color: var(--muted);
+            }
+
+            /* ── OPTIONS ── */
+            .opts {
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                gap: 10px;
+                width: 100%;
+                margin-bottom: 36px;
+            }
+
+            .opt-btn {
+                background: var(--dim);
+                border: 1px solid var(--border);
+                padding: 28px 10px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+                cursor: none;
+                position: relative;
+                overflow: hidden;
+                transition: border-color .2s, transform .2s, background .2s;
+            }
+
+            .opt-btn:hover:not(:disabled) {
+                border-color: rgba(201, 168, 76, .4);
+                background: rgba(201, 168, 76, .05);
+                transform: translateY(-3px);
+            }
+
+            .opt-btn:disabled {
+                cursor: not-allowed;
+            }
+
+            .opt-char {
+                font-family: 'Playfair Display', serif;
+                font-size: 2rem;
+                font-weight: 900;
+                color: var(--cream);
+                line-height: 1;
+            }
+
+            .opt-label {
+                font-family: 'Space Mono', monospace;
+                font-size: 0.55rem;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+
+            .opt-btn.correct {
+                border-color: var(--green);
+                background: rgba(76, 175, 130, .08);
+                animation: cPulse .5s ease;
+            }
+
+            .opt-btn.correct .opt-char {
+                color: var(--green);
+            }
+
+            .opt-btn.wrong {
+                border-color: var(--red);
+                background: rgba(201, 76, 76, .08);
+                animation: wShake .4s ease;
+            }
+
+            .opt-btn.wrong .opt-char {
+                color: var(--red);
+            }
+
+            .opt-btn.reveal {
+                border-color: var(--green);
+                background: rgba(76, 175, 130, .08);
+            }
+
+            .opt-btn.reveal .opt-char {
+                color: var(--green);
+            }
+
+            .feedback {
+                height: 72px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                text-align: center;
+            }
+
+            .fb-title {
+                font-family: 'Playfair Display', serif;
+                font-size: 1.7rem;
+                font-weight: 900;
+            }
+
+            .fb-title.good {
+                color: var(--green);
+            }
+
+            .fb-title.bad {
+                color: var(--red);
+            }
+
+            .fb-sub {
+                font-family: 'Space Mono', monospace;
+                font-size: 0.6rem;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+
+            .next-btn {
+                padding: 15px 52px;
+                border: 1px solid var(--gold);
+                color: var(--gold);
+                background: transparent;
+                font-family: 'Space Mono', monospace;
+                font-size: 0.66rem;
+                letter-spacing: 0.22em;
+                text-transform: uppercase;
+                cursor: none;
+                position: relative;
+                overflow: hidden;
+                transition: color .4s, opacity .4s, transform .4s;
+                opacity: 0;
+                pointer-events: none;
+                transform: translateY(10px);
+            }
+
+            .next-btn::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: var(--gold);
+                transform: translateX(-102%);
+                transition: transform .4s cubic-bezier(.3, 0, 0, 1);
+                z-index: -1;
+            }
+
+            .next-btn:hover {
+                color: var(--ink);
+            }
+
+            .next-btn:hover::before {
+                transform: translateX(0);
+            }
+
+            .next-btn.vis {
+                opacity: 1;
+                pointer-events: all;
+                transform: translateY(0);
+            }
+
+            /* GAME OVER */
+            .gameover {
+                display: none;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 30px;
+                width: 100%;
+                animation: fadeInUp .6s ease forwards;
+            }
+
+            .gameover.show {
+                display: flex;
+            }
+
+            .go-eyebrow {
+                font-family: 'Space Mono', monospace;
+                font-size: 0.66rem;
+                letter-spacing: 0.28em;
+                text-transform: uppercase;
+                color: var(--gold);
+            }
+
+            .go-title {
+                font-family: 'Playfair Display', serif;
+                font-size: clamp(3rem, 8vw, 5.5rem);
+                font-weight: 900;
+                color: var(--cream);
+                line-height: 0.95;
+            }
+
+            .go-title span {
+                color: var(--gold);
+                font-style: italic;
+            }
+
+            .go-stats {
+                display: flex;
+                gap: 56px;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .go-stat .gn {
+                font-family: 'Playfair Display', serif;
+                font-size: 3rem;
+                font-weight: 900;
+                color: var(--gold);
+                line-height: 1;
+            }
+
+            .go-stat .gl {
+                font-family: 'Space Mono', monospace;
+                font-size: 0.58rem;
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+
+            .go-div {
+                width: 100px;
+                height: 1px;
+                background: var(--border);
+            }
+
+            .go-grade {
+                font-family: 'Playfair Display', serif;
+                font-style: italic;
+                font-size: 1.3rem;
+                color: var(--muted);
+                max-width: 400px;
+                line-height: 1.5;
+            }
+
+            .play-again {
+                padding: 17px 60px;
+                background: var(--gold);
+                color: var(--ink);
+                border: none;
+                font-family: 'Space Mono', monospace;
+                font-size: 0.68rem;
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                font-weight: 700;
+                cursor: none;
+                transition: background .3s, transform .2s;
+            }
+
+            .play-again:hover {
+                background: var(--gold-light);
+                transform: translateY(-2px);
+            }
+
+            .corner {
+                position: fixed;
+                font-family: 'Space Mono', monospace;
+                font-size: 0.52rem;
+                letter-spacing: 0.18em;
+                color: rgba(201, 168, 76, .2);
+                pointer-events: none;
+            }
+
+            .corner.tl {
+                top: 20px;
+                left: 20px;
+            }
+
+            .corner.br {
+                bottom: 20px;
+                right: 20px;
+            }
+
+            @keyframes cPulse {
+                0% {
+                    transform: scale(1)
+                }
+
+                30% {
+                    transform: scale(1.04)
+                }
+
+                100% {
+                    transform: scale(1)
+                }
+            }
+
+            @keyframes wShake {
+
+                0%,
+                100% {
+                    transform: translateX(0)
+                }
+
+                20% {
+                    transform: translateX(-5px)
+                }
+
+                40% {
+                    transform: translateX(5px)
+                }
+
+                60% {
+                    transform: translateX(-4px)
+                }
+
+                80% {
+                    transform: translateX(4px)
+                }
+            }
+
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(24px)
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0)
+                }
+            }
+
+            @keyframes scanline {
+                0% {
+                    top: -10%
+                }
+
+                100% {
+                    top: 110%
+                }
+            }
+
+            /* scanline effect on binary card */
+            .binary-card::after {
+                content: '';
+                position: absolute;
+                left: 0;
+                right: 0;
+                height: 2px;
+                background: linear-gradient(to right, transparent, rgba(201, 168, 76, 0.15), transparent);
+                animation: scanline 3s linear infinite;
+                pointer-events: none;
+            }
+
+            @media(max-width:680px) {
+                header {
+                    padding: 20px 24px;
+                }
+
+                main {
+                    padding: 36px 16px 60px;
+                }
+
+                .opts {
+                    grid-template-columns: repeat(3, 1fr);
+                }
+
+                .bc-binary {
+                    font-size: 1.3rem;
+                    letter-spacing: 0.08em;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <div id="cursor">
+            <div class="ring"></div>
+            <div class="dot"></div>
+        </div>
+        <div class="corner tl">BINAIRE / BINARY → CHAR</div>
+        <div class="corner br" id="diffLbl">MODE: EASY</div>
+
+        <header>
+            <a href='/' class="logo">BIN<span>AIRE</span></a>
+            <div class="header-right">
+                <div class="hstat">
+                    <a href="/" class="snum">Home</a>
+                </div>
+                <div class="hstat s2">
+                    <div class="snum" id="streakN">0</div>
+                    <div class="slbl">Streak 🔥</div>
+                </div>
+                <div class="hstat">
+                    <div class="snum" id="scoreN">0</div>
+                    <div class="slbl">Score</div>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="diff-bar">
+                <button class="diff-btn active" data-diff="easy" data-hint="0–9 digits only">Easy</button>
+                <button class="diff-btn" data-diff="medium" data-hint="A–Z uppercase">Medium</button>
+                <button class="diff-btn" data-diff="hard" data-hint="Letters + digits">Hard</button>
+                <button class="diff-btn reset" id="playAgain">Reset</button>
+            </div>
+
+            <div id="gameArea" style="display:flex;flex-direction:column;align-items:center;width:100%">
+                <div class="prog-wrap">
+                    <div class="prog-meta"><span id="rndLbl">Round 1 of 10</span><span id="accLbl">Accuracy —</span></div>
+                    <div class="prog-bar">
+                        <div class="prog-fill" id="progFill" style="width:0%"></div>
+                    </div>
+                </div>
+                <div class="round-dots" id="rndDots"></div>
+
+                <div class="binary-card" id="binCard">
+                    <div class="bc-eyebrow">Decode this binary sequence</div>
+                    <div class="bc-binary" id="binDisplay">00000000</div>
+                    <div class="bc-sub">8-bit ASCII — what character is this?</div>
+                </div>
+
+                <div class="opts" id="optsGrid"></div>
+                <div class="feedback">
+                    <div class="fb-title" id="fbTitle"></div>
+                    <div class="fb-sub" id="fbSub"></div>
+                </div>
+                <button class="next-btn" id="nextBtn">Next sequence →</button>
+            </div>
+
+            <div class="gameover" id="gameOver">
+                <p class="go-eyebrow">Session complete</p>
+                <h2 class="go-title" id="goTitle">Well<br><span>decoded.</span></h2>
+                <div class="go-div"></div>
+                <div class="go-stats">
+                    <div class="go-stat">
+                        <div class="gn" id="goScore">0</div>
+                        <div class="gl">Score</div>
+                    </div>
+                    <div class="go-stat">
+                        <div class="gn" id="goCorrect">0/10</div>
+                        <div class="gl">Correct</div>
+                    </div>
+                    <div class="go-stat">
+                        <div class="gn" id="goBest">0</div>
+                        <div class="gl">Best Streak</div>
+                    </div>
+                </div>
+                <p class="go-grade" id="goGrade"></p>
+                <button class="play-again" id="playAgain1">Continue</button>
+            </div>
+        </main>
+
+        <script>
+            // cursor
+            const cur = document.getElementById('cursor');
+            const cdot = cur.querySelector('.dot'),
+                  cring = cur.querySelector('.ring');
+            let mx = -100,
+                my = -100,
+                rx = -100,
+                ry = -100;
+            document.addEventListener('mousemove', e => {
+                mx = e.clientX;
+                my = e.clientY;
+                cdot.style.left = mx + 'px';
+                cdot.style.top = my + 'px';
+            });
+            (function loop() {
+                rx += (mx - rx) * .12;
+                ry += (my - ry) * .12;
+                cring.style.left = rx + 'px';
+                cring.style.top = ry + 'px';
+                requestAnimationFrame(loop);
+            })();
+            const sh = v => document.body.classList.toggle('hovering', v);
+            document.querySelectorAll('button').forEach(b => {
+                b.addEventListener('mouseenter', () => sh(true));
+                b.addEventListener('mouseleave', () => sh(false));
+            });
+
+            // game state
+            const ROUNDS = 10;
+            const CHAR_SETS = {
+                easy: '0123456789',
+                medium: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                hard: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+            };
+            const PTS = {
+                easy: 100,
+                medium: 200,
+                hard: 350
+            };
+            let diff = 'easy',
+                round = 0,
+                score = 0,
+                streak = 0,
+                best = 0,
+                history = [],
+                answered = false,
+                correctChar = '';
+
+            function ri(a, b) {
+                return Math.floor(Math.random() * (b - a + 1)) + a;
+            }
+
+            function shuffle(a) {
+                for (let i = a.length - 1; i > 0; i--) {
+                    const j = ri(0, i);
+                    [a[i], a[j]] = [a[j], a[i]];
+                }
+                return a;
+            }
+
+            function charToBin(c) {
+                return c.charCodeAt(0).toString(2).padStart(8, '0');
+            }
+
+            function formatBin(b) {
+                return b.split('').map(bit => `<span class="bit-${bit}">${bit}</span>`).join('');
+            }
+
+            function getCharSet() {
+                return CHAR_SETS[diff].split('');
+            }
+
+            function generateOptions(correct) {
+                const set = getCharSet();
+                const opts = [correct];
+                let attempts = 0;
+                while (opts.length < 5 && attempts < 300) {
+                    attempts++;
+                    const c = set[ri(0, set.length - 1)];
+                    if (!opts.includes(c)) opts.push(c);
+                }
+                // fallback: pull from full hard set
+                const full = CHAR_SETS.hard.split('');
+                while (opts.length < 5) {
+                    const c = full[ri(0, full.length - 1)];
+                    if (!opts.includes(c)) opts.push(c);
+                }
+                return shuffle(opts);
+            }
+
+            function updateDots() {
+                const c = document.getElementById('rndDots');
+                c.innerHTML = '';
+                for (let i = 0; i < ROUNDS; i++) {
+                    const d = document.createElement('div');
+                    d.className = 'round-dot';
+                    if (i < round) d.classList.add(history[i] ? 'ok' : 'ng');
+                    else if (i === round) d.classList.add('cur');
+                    c.appendChild(d);
+                }
+            }
+
+            function updateProg() {
+                const pct = (round / ROUNDS) * 100;
+                document.getElementById('progFill').style.width = pct + '%';
+                document.getElementById('rndLbl').textContent = `Round ${round+1} of ${ROUNDS}`;
+                const cor = history.filter(Boolean).length;
+                document.getElementById('accLbl').textContent = round > 0 ? `Accuracy ${Math.round(cor/round*100)}%` : 'Accuracy —';
+            }
+
+            function renderRound() {
+                if (round >= ROUNDS) {
+                    showGameOver();
+                    return;
+                }
+                answered = false;
+                const set = getCharSet();
+                correctChar = set[ri(0, set.length - 1)];
+                const bin = charToBin(correctChar);
+
+                const card = document.getElementById('binCard');
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    document.getElementById('binDisplay').innerHTML = formatBin(bin);
+                    card.style.transition = 'opacity .5s ease, transform .5s cubic-bezier(.2,.8,.3,1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100);
+
+                const opts = generateOptions(correctChar);
+                const grid = document.getElementById('optsGrid');
+                grid.innerHTML = '';
+                opts.forEach(ch => {
+                    const btn = document.createElement('button');
+                    btn.className = 'opt-btn';
+                    btn.innerHTML = `<div class="opt-char">${ch}</div><div class="opt-label">${ch.charCodeAt(0)}</div>`;
+                    btn.addEventListener('mouseenter', () => sh(true));
+                    btn.addEventListener('mouseleave', () => sh(false));
+                    btn.addEventListener('click', e => handleAnswer(btn, ch));
+                    grid.appendChild(btn);
+                });
+
+                document.getElementById('fbTitle').textContent = '';
+                document.getElementById('fbSub').textContent = '';
+                document.getElementById('nextBtn').classList.remove('vis');
+                updateProg();
+                updateDots();
+            }
+
+            function handleAnswer(btn, chosen) {
+                if (answered) return;
+                answered = true;
+                document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+                const ok = chosen === correctChar;
+                history.push(ok);
+                if (ok) {
+                    btn.classList.add('correct');
+                    const pts = PTS[diff] + (streak * 20);
+                    score += pts;
+                    streak++;
+                    if (streak > best) best = streak;
+                    document.getElementById('fbTitle').textContent = pick(['Exquisite.', 'Decoded.', 'Brilliant.', 'Correct.', 'Parfait.']);
+                    document.getElementById('fbTitle').className = 'fb-title good';
+                    document.getElementById('fbSub').textContent = `+${pts} pts${streak>1?' · '+streak+'× streak':''}`;
+                } else {
+                    btn.classList.add('wrong');
+                    streak = 0;
+                    document.querySelectorAll('.opt-btn').forEach(b => {
+                        if (b.querySelector('.opt-char').textContent === correctChar) b.classList.add('reveal');
+                    });
+                    document.getElementById('fbTitle').textContent = pick(['Not quite.', 'Almost.', 'Incorrect.', 'Keep going.']);
+                    document.getElementById('fbTitle').className = 'fb-title bad';
+                    document.getElementById('fbSub').textContent = `Answer was "${correctChar}" (${charToBin(correctChar)})`;
+                }
+                document.getElementById('scoreN').textContent = score;
+                document.getElementById('streakN').textContent = streak;
+                round++;
+                document.getElementById('nextBtn').classList.add('vis');
+                updateDots();
+            }
+
+            function pick(arr) {
+                return arr[ri(0, arr.length - 1)];
+            }
+
+            function showGameOver() {
+                document.getElementById('gameArea').style.display = 'none';
+                const go = document.getElementById('gameOver');
+                go.classList.add('show');
+                const cor = history.filter(Boolean).length;
+                const pct = Math.round(cor / ROUNDS * 100);
+                document.getElementById('goScore').textContent = score;
+                document.getElementById('goCorrect').textContent = `${cor}/${ROUNDS}`;
+                document.getElementById('goBest').textContent = best;
+                const titles = ['Machine<br><span>mind.</span>', 'Well<br><span>decoded.</span>', 'Not<br><span>bad.</span>', 'Keep<br><span>trying.</span>', 'Back to<br><span>basics.</span>'];
+                const grades = ['"You speak in ones and zeros. The machines bow to you."', '"A sharp decoder — the matrix would be proud."', '"Solid instincts. The binary world is opening up."', '"The sequences are tricky. Persistence is key."', '"01001110 01001111 — that means no, for now."'];
+                const idx = pct === 100 ? 0 : pct >= 80 ? 1 : pct >= 60 ? 2 : pct >= 40 ? 3 : 4;
+                document.getElementById('goTitle').innerHTML = titles[idx];
+                document.getElementById('goGrade').textContent = grades[idx];
+            }
+
+            document.querySelectorAll('.diff-btn').forEach(b => {
+                if (!b.dataset.diff) return;
+                b.addEventListener('mouseenter', () => sh(true));
+                b.addEventListener('mouseleave', () => sh(false));
+                b.addEventListener('click', () => {
+                    document.querySelectorAll('.diff-btn').forEach(x => x.classList.remove('active'));
+                    b.classList.add('active');
+                    diff = b.dataset.diff;
+                    document.getElementById('diffLbl').textContent = 'MODE: ' + diff.toUpperCase();
+                    if (round === 0) renderRound();
+                });
+            });
+
+            document.getElementById('nextBtn').addEventListener('click', () => {
+                document.getElementById('nextBtn').classList.remove('vis');
+                renderRound();
+            });
+            document.getElementById('playAgain').addEventListener('click', () => {
+                round = 0;
+                score = 0;
+                streak = 0;
+                best = 0;
+                history = [];
+                document.getElementById('scoreN').textContent = 0;
+                document.getElementById('streakN').textContent = 0;
+                document.getElementById('gameOver').classList.remove('show');
+                const ga = document.getElementById('gameArea');
+                ga.style.display = 'flex';
+                renderRound();
+            });
+
+            document.getElementById("playAgain1").addEventListener("click", async () => {
+                try {
+                    // Send score & streak
+                    await fetch("/binary", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        body: `score=${score}&streak=${best}&game=bin`
+                    });
+
+                    round = 0;
+                    score = 0;
+                    streak = 0;
+                    best = 0;
+                    history = [];
+                    document.getElementById('scoreN').textContent = 0;
+                    document.getElementById('streakN').textContent = 0;
+                    document.getElementById('gameOver').classList.remove('show');
+                    const ga = document.getElementById('gameArea');
+                    ga.style.display = 'flex';
+                    renderRound();
+                } catch (err) {
+                    console.error("Failed to submit score", err);
+                }
+            });
+
+            renderRound();
+        </script>
+    </body>
+
+</html>
