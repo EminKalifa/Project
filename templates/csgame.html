@@ -945,6 +945,11 @@
                 }
 
                 .nav-links {
+                    display: flex;
+                    gap: 16px;
+                    font-size: 0.6rem;
+                }
+                .nav-links li:not(:last-child):not(:first-child) {
                     display: none;
                 }
 
@@ -974,7 +979,14 @@
                 }
 
                 .projects-grid {
+                    display: grid;
                     grid-template-columns: 1fr;
+                    gap: 16px;
+                }
+                
+                .project-card {
+                    aspect-ratio: 4 / 3;
+                    height: auto;
                 }
 
                 .project-card:first-child {
