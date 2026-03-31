@@ -1,5 +1,0 @@
-flask
-Flask-session
-cs50
-Werkzeug
-gunicorn
