@@ -1,5 +1,5 @@
 # HEX COLOR & BINARY CODE GUESSING GAME
-#### Video Demo:
+#### Video Demo: https://www.youtube.com/watch?v=qQ07fxuFIS4
 #### Description:
 This project is a web based game platform featuring 4 mini games focused on color (HEX) recognition and binary/ASCII conversion. It includes user authentication and a leaderboard system to track players' performance.
 
