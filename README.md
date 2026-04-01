@@ -20,18 +20,43 @@ in this game mode the displayed value is a number or a letter (lower and upper c
 and the options contain Binary codes. The player must guess the Binary code that corresponds to the displayed
 ASCII letter
 
-The website also requires the user to register or login by providing a username and a password in order to keep track of the users'
-scores and streaks (for each game) and display it on a LeaderBoard that ranks the players by the highest score.
+#### Features
+ -Streak & Score system: The website evaluates your progress by scoring it. Scoring is directly proportional with the streak flow.
 
-The LeaderBoard updates everytime a player scores a higher score for each game.
+ -Register/Login/Logout: The website also requires the user to register or login by providing a username and a password in order to keep track of the users'
+ scores and streaks (for each game) and display it on a LeaderBoard that ranks the players by the highest score.
 
-#### TECHS USED
+-LeaderBoard: The LeaderBoard updates everytime a player scores a higher score for each game and shows the highest score, the best streak (of the highest score)
+ and the game played of every player that completed a mini game
+
+#### Techs used
 -HTML, CSS, JAVASCRIPT
 -Flask
--SQL to support registration
+-SQL to backup registration
 
-#### NOTES:
+#### Files:
+ -bash```$templates/csgame.html```: The homepages html. Luxury design. has four buttons in the header, Modes forwards to the game modes section, Leaderboard forwards
+ to bash```$templates/leader.html```, Contact forwards to the footer and Logout logs the user out to the logining page.
+
+ -bash```$templates/hex1.html```: The html for the Hex Code Guesser mini game. Its design is in bash```$static/hex1.css```
+
+ -bash```$templates/hex2.html```: The html for the Hex Color Guesser mini game. Its design is in bash```$static/hex2.css```
+
+ -bash```$templates/binary.html```: The html for the Binary Guesser mini game.
+
+ -bash```$templates/binary2.html```: The html for the ASCII to Binary Code mini game.
+
+ -bash```$templates/leader.html```: The html for the leaderboard page.
+
+ -bash```$templates/login.html```: The html for the logining page.
+
+ -bash```$templates/register.html```: The html for the registeration page.
+
+ -users.db: Is the sqlite3 database where users' information is stored. Usernames, passwords and IDs are stored in a table called users;
+ Scores, streaks, games played are stored in different table called scores.
+
+#### Notes:
 -the website's UI design was mostly assisted by AI tools, while all game logic and functionality were implemented by me.
 
 -i also made a separate version of this project, that i didnt dwell on its design much, that contains the color guessing and the binary guessing game modes
-coded solely by me (without ai) to demonstrate my capability. The website is shown at the end of the provided video
+coded solely by me (without ai) to demonstrate my capability. The website is shown at the end of the provided video and in bash```$project/project1```
