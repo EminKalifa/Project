@@ -23,6 +23,8 @@ ASCII letter
 The website also requires the user to register or login by providing a username and a password in order to keep track of the users'
 scores and streaks (for each game) and display it on a LeaderBoard that ranks the players by the highest score.
 
+The LeaderBoard updates everytime a player scores a higher score for each game.
+
 #### TECHS USED
 -HTML, CSS, JAVASCRIPT
 -Flask
