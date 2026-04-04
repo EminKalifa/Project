@@ -710,14 +710,9 @@ main {
     }
 
     .opts {
-        grid-template-columns: repeat(3, 1fr);
-        justify-content: center;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     }
-
-    .opts > * {
-        justify-self: center;
-    }
-
+    
     .hc-code {
         font-size: 2rem;
         letter-spacing: .04em;
