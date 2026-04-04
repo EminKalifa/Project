@@ -156,7 +156,7 @@ def hex():
         return render_template("hex1.html")
 
 
-@app.route("/hex21", methods=['POST', 'GET'])
+@app.route("/hex2", methods=['POST', 'GET'])
 @login_required
 def hex2():
     if request.method == 'POST':
@@ -184,7 +184,7 @@ def hex2():
         return 'ok', 200
 
     else:
-        return render_template("hex21.html")
+        return render_template("hex2.html")
 
 
 @app.route("/binary", methods=['POST', 'GET'])
