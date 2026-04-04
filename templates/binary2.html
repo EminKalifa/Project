@@ -149,6 +149,7 @@
 
             .diff-bar {
                 display: flex;
+                flex-wrap: wrap;
                 gap: 2px;
                 margin-bottom: 44px;
                 border: 1px solid var(--border);
@@ -714,6 +715,14 @@
 
                 main {
                     padding: 36px 16px 60px;
+                }
+
+                .diff-btn {
+                    flex: 1 1 30%;
+                }
+            
+                .diff-btn:last-child {
+                    flex: 1 1 100%;
                 }
 
                 .opts {
